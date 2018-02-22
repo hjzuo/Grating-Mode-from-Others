@@ -1,0 +1,22 @@
+D_te1 = [];
+
+D_tm1 = [];
+
+h_s = [0.2 : 0.005:0.6;];
+
+for ii = 1: n_D
+    
+    D_e_t = interp1(h,te1_D(ii,:),h_s);
+    
+    
+    D_m_t = interp1(h,tm1_D(ii,:),h_s);
+    
+    
+    D_te1 = [D_te1;D_e_t];
+    
+    
+    D_tm1 = [D_tm1;D_m_t];
+    
+    
+end
+

@@ -1,0 +1,15 @@
+
+load D_material
+
+load D_wg_500nm
+
+load D_wg_500nm_cor
+
+
+
+D_t = D_TM1_ds(1,:) + D_Ge11;
+
+figure(3)
+
+plot(wave_t,D_t)
+

@@ -1,0 +1,85 @@
+% This example computes all of the field components of a
+% Ridge waveguide
+% %         ^        coat (n3)
+% %         |
+% %         | h3
+% %         ^         -------------       ^
+% %         |         |           |       |  rh 
+% %         h2        |           |       |
+% %         |   -------            ---------
+% %         |         core film (n2)
+% %         -   ----------------------------
+% %         ^
+% %         |
+% %         h1
+% %         |          sub (n1)
+% %         |
+% %         -   ------------------------------
+% % 
+clear all;
+close all
+% % starttime=datestr(now)
+starttime=clock;
+timestamp=datestr(now, 30);
+
+%%  struture definition
+dx0=25;                 %Grid size nm
+dy0=25;                %grid size nm
+side = 4000;            % space on side of waveguide (nm) matters
+h1 = 2000;              % buffer thickness(nm)
+h3 = 3000;              % coating  thickess - cladding (nm)
+
+post_offset=0:500:4000;
+post_h=500;
+post_w=1000;
+post_n=3.5;
+
+nmodes=2;
+lambda=1500:50:1600;      % Wavelength range
+n1=1.444*ones(1,length(lambda));
+n3=1.444*ones(1,length(lambda));
+n2=1.484*ones(1,length(lambda));
+w_array=4000;         % waveguide width array
+h2_array=4000;         % film thickness 
+rh_por_array=1;       % etch depth portion to thickness (move in side film thickness)
+% % -------------------------------------
+
+iw_length=length(w_array);
+il_length=length(lambda);
+ih2_length=length(h2_array);
+irh_length=length(rh_por_array);
+
+
+
+%% START THE LOOP TO CALCULATE neff FOR DIFFERENT WAVELENGTH, RIDGE AND WIDTH
+     
+effectiveIndex = zeros(length(post_offset), nmodes);
+
+
+    w=w_array;
+    h2=h2_array;
+    rh=floor(h2*rh_por_array);
+    
+for i=1:length(post_offset)
+ii=find(lambda==1550);
+            count=count+1;
+            dx = dy0;             % grid size (x)
+            dy = dx0;             % grid size (y) 
+    %         fprintf (1,'generating index mesh...\n');
+
+    [x,y,xc,yc,nx,ny,eps] = wgmesh_post([n1(ii),n2(ii),n3(ii)],[h1,h2,h3],...
+        rh,w/2,side,dx,dy,post_offset,post_h,post_w,post_n);
+    %             waveguidemeshfull([n1(ii),n2(ii),n3(ii)],[h1,h2,h3],rh,w/2,side,dx,dy);
+    
+    
+    % % % Now we stretch out the mesh at the boundaries: N S E W
+    [x,y,xc,yc,dx,dy] = stretch(x,y,[20,20,40,40],[1.5,1.5,1.5,1.5]);
+    %         fprintf (1,'solving for eigenmodes...'); t = cputime;
+    
+    [Hx,Hy,neff] = wgmodes (lambda(ii), n2(ii), nmodes, dx, dy, eps, '0000');
+    
+    effectiveIndex(i,:)=sort(neff,'descend');
+end
+
+%%  analysis the result
+analysis_test

@@ -1,0 +1,703 @@
+clear
+
+rw = 0.6;
+c0 = 299792458;  
+D_TM1 = [];
+
+D_TM2 = [];
+
+D_TM3 = [];
+
+D_TE1 = [];
+
+D_TE2 = [];
+
+D_TE3 = [];
+
+gamma_TM1 = [];
+
+gamma_TM2 = [];
+
+gamma_TM3 = [];
+
+gamma_TE1 = [];
+
+gamma_TE2 = [];
+
+gamma_TE3 = [];
+
+for h2 = 0.54:0.02:0.64
+
+rh  = h2;
+h3  = 0;    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Saving
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% s = ['Ge11_AIR_WG_RidgeW_',int2str(rw*1000),'nm_h2_',int2str(h2*1000),'nm_fully_etched'];
+
+% s = ['Ge11_650nm_wd_IPG_clad_WD_test_WG_RidgeW_',int2str(rw*1000),'nm_h2_',int2str(h2*1000)];
+% s = ['Ge11_IPG_high_clad_wg_WD_',int2str(rw*1000),'nm_h2_',int2str(h2*1000),'nm_',int2str(h3*1000),'nm'];
+
+s = ['second_Single_P_P_Ge11_IPG_clad_wg_WD_',int2str(rw*1000),'nm_h2_',int2str(h2*1000),'nm'];
+
+order5 = ['cd D:\MATLAB\AMT_Model\',s];
+
+eval(order5);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Display Aeff
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+load Aeff
+
+load Neff
+
+load wavelength
+
+cd ..
+
+c = [' -r',' -m',' -y','-*b','-*c','-*g','  r','  b','  g','  c','  m','  y','--r','--b','--g','--c','--m','--y'];
+
+c = reshape(c,3,18);
+
+c = c';
+
+omega_dis  = fliplr(2*pi*c0./wavelength_2);
+
+wave_t     = [1350:0.5:1500]*1e-9;
+
+omega      = fliplr(2*pi*c0./wave_t);
+
+
+n_tm   =  min(size(neff_TM));         % the mode num of tm
+
+n_te   =  min(size(neff_TE));         % the mode num of te
+
+k        = omega/c0;
+
+beta0_tm = [];
+
+beta0_te = [];
+
+
+beta1_tm = [];
+
+beta1_te = [];
+
+
+beta2_tm = [];
+
+beta2_te = [];
+
+
+for ii = 1: n_tm
+    
+    
+   P_TM0 = polyfit(omega_dis,fliplr(neff_TM(:,ii)'),11);
+
+   n_TM0_omega = polyval(P_TM0,omega);
+
+   n_TM0 =fliplr(n_TM0_omega);
+    
+    
+   beta0_omega_TM0 = k.*n_TM0_omega;
+
+   beta0_TM0 = fliplr(beta0_omega_TM0);
+   
+   beta0_tm = [beta0_tm;beta0_TM0];
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   n = length(P_TM0) - 1;
+
+   P_multi_TM0 = [n+1:-1:1];
+
+   P_beta1_TM0 = P_TM0.*P_multi_TM0/c0;
+
+   beta1_omega_TM0 = polyval(P_beta1_TM0,omega);
+
+   beta1_TM0 = fliplr(beta1_omega_TM0);
+  
+   beta1_tm = [beta1_tm;beta1_TM0];
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+   P_multi_TM0 = [n:-1:1];
+
+   P_beta2_TM0 = P_beta1_TM0(1:end-1).*P_multi_TM0;
+
+   beta2_omega_TM0 = polyval(P_beta2_TM0,omega);
+
+   beta2_TM0 = fliplr(beta2_omega_TM0);
+   beta2_tm = [beta2_tm;beta2_TM0];
+   
+end
+
+
+%    
+   beta0_tm = beta0_tm';
+   
+   beta1_tm = beta1_tm';
+   
+   beta2_tm = beta2_tm';
+   
+
+for ii = 1: n_te
+    
+      P_TE0 = polyfit(omega_dis,fliplr(neff_TE(:,ii)'),11);
+
+   n_TE0_omega = polyval(P_TE0,omega);
+
+   n_TE0 =fliplr(n_TE0_omega);
+    
+    
+   beta0_omega_TE0 = k.*n_TE0_omega;
+
+   beta0_TE0 = fliplr(beta0_omega_TE0);
+   
+   beta0_te = [beta0_te;beta0_TE0];
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   n = length(P_TE0) - 1;
+
+   P_multi_TE0 = [n+1:-1:1];
+
+   P_beta1_TE0 = P_TE0.*P_multi_TE0/c0;
+
+   beta1_omega_TE0 = polyval(P_beta1_TE0,omega);
+
+   beta1_TE0 = fliplr(beta1_omega_TE0);
+  
+   beta1_te = [beta1_te;beta1_TE0];
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+   P_multi_TE0 = [n:-1:1];
+
+   P_beta2_TE0 = P_beta1_TE0(1:end-1).*P_multi_TE0;
+
+   beta2_omega_TE0 = polyval(P_beta2_TE0,omega);
+
+   beta2_TE0 = fliplr(beta2_omega_TE0);
+   
+   beta2_te = [beta2_te;beta2_TE0];
+end
+   
+   beta0_te = beta0_te';
+   
+   beta1_te = beta1_te';
+   
+   beta2_te = beta2_te';
+   
+   
+   D_tm = [];
+   
+   D_te = [];
+   
+   
+   for ii = 1:n_tm
+       
+   D_tm_t = - 2*pi*c0./wave_t'.^2.*beta2_tm(:,ii);
+      
+%    figure(ii),plot(wave_t*1e6,D_tm_t*1e6);
+   
+   D_tm = [D_tm;D_tm_t'];
+   
+   end
+   
+   D_tm = D_tm'*1e6;
+   
+   
+   
+   for ii = 1:n_te
+       
+   D_te_t = - 2*pi*c0./wave_t'.^2.*beta2_te(:,ii);
+   
+
+   
+%    figure(ii+n_tm),plot(wave_t*1e6,D_te_t*1e6);
+   
+   D_te = [D_te;D_te_t'];
+   
+   end
+   
+   D_te = D_te'*1e6;
+   
+
+D_TM1 = [D_TM1;D_tm(:,1)'];
+
+% D_TM2 = [D_TM2;D_tm(:,2)'];
+
+% D_TM3 = [D_TM3;D_tm(:,3)'];
+
+D_TE1 = [D_TE1;D_te(:,1)'];
+
+% D_TE2 = [D_TE2;D_te(:,2)'];
+
+% D_TE3 = [D_TE3;D_te(:,3)'];
+   
+   
+   
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+   % nonlinearity
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+   n2 = 8.65e-18;                   % m^2/w
+
+   Aeff_TE = Aeff_TE * 1e-12;      % um^2 - m^2
+
+   Aeff_TM = Aeff_TM * 1e-12;      % um^2 - m^2
+
+   gamma_tm = [];
+   
+   gamma_te = [];
+   
+   
+   for ii = 1 : n_tm
+   
+   gamma_tm_t = n2*fliplr(omega_dis)'/c0./Aeff_TM(:,ii);
+   
+   gamma_tm_t =  interp1(wavelength_2,gamma_tm_t,wave_t);
+   
+   gamma_tm = [gamma_tm; gamma_tm_t];
+   
+   end
+   
+   gamma_tm = gamma_tm';
+   
+   
+   
+   for ii = 1 : n_te
+   
+   gamma_te_t = n2*fliplr(omega_dis)'/c0./Aeff_TE(:,ii);
+   
+   gamma_te_t =  interp1(wavelength_2,gamma_te_t,wave_t);
+   
+   gamma_te = [gamma_te; gamma_te_t];
+   
+   end
+   
+   gamma_te = gamma_te';
+   
+   
+gamma_TM1 = [gamma_TM1;gamma_tm(:,1)'];
+% 
+% gamma_TM2 = [gamma_TM2;gamma_tm(:,2)'];
+% 
+% gamma_TM3 = [gamma_TM3;gamma_tm(:,3)'];
+
+gamma_TE1 = [gamma_TE1;gamma_te(:,1)'];
+% 
+% gamma_TE2 = [gamma_TE2;gamma_te(:,2)'];
+% 
+% gamma_TE3 = [gamma_TE3;gamma_te(:,3)'];
+%    
+end
+
+h2 = 0.54:0.02:0.64;
+
+h2_ds = 0.54:0.01:0.64;
+
+% h2_ds_tm1 = 0.4:0.005:0.8;
+% 
+% h2_ds_tm2 = 0.4:0.005:0.8;
+% 
+% 
+% h2_ds_te1 = 0.4:0.005:0.8;
+% 
+% h2_ds_te2 = 0.4:0.005:0.8;
+
+n_w_ds = length(wave_t);
+
+D_TM1_ds = [];
+
+D_TM1_ds = [];
+
+D_TM1_ds1 = [];
+
+D_TM1_ds2 = [];
+
+D_TM2_ds = [];
+
+D_TM3_ds = [];
+
+D_TE1_ds = [];
+
+D_TE1_ds1 = [];
+
+D_TE1_ds2 = [];
+
+D_TE2_ds = [];
+
+D_TE3_ds = [];
+
+
+
+gamma_TM1_ds = [];
+
+gamma_TM2_ds = [];
+
+gamma_TM3_ds = [];
+
+gamma_TE1_ds = [];
+
+gamma_TE2_ds = [];
+
+gamma_TE3_ds = [];
+
+
+
+for ii = 1 : n_w_ds
+    
+    
+D_t = interp1(h2,D_TM1(:,ii),h2_ds);
+
+D_TM1_ds = [D_TM1_ds; D_t];
+
+% D_t = interp1(h2,D_TM1(:,ii),h2_ds_tm1);
+% 
+% D_TM1_ds1 = [D_TM1_ds1; D_t];
+% 
+% D_t = interp1(h2,D_TM1(:,ii),h2_ds_tm2);
+% 
+% D_TM1_ds2 = [D_TM1_ds2; D_t];
+
+% D_t = interp1(rh,D_TM2(:,ii),rh_ds);
+% 
+% D_TM2_ds = [D_TM2_ds; D_t];
+
+% D_t = interp1(rh,D_TM3(:,ii),rh_ds);
+% 
+% D_TM3_ds = [D_TM3_ds; D_t];
+
+D_t = interp1(h2,D_TE1(:,ii),h2_ds);
+
+D_TE1_ds = [D_TE1_ds; D_t];
+
+% D_t = interp1(h2,D_TE1(:,ii),h2_ds_te1);
+% 
+% D_TE1_ds1 = [D_TE1_ds1; D_t];
+% 
+% D_t = interp1(h2,D_TE1(:,ii),h2_ds_te2);
+% 
+% D_TE1_ds2 = [D_TE1_ds2; D_t];
+
+% D_t = interp1(rh,D_TE2(:,ii),rh_ds);
+% 
+% D_TE2_ds = [D_TE2_ds; D_t];
+
+% D_t = interp1(rh,D_TE3(:,ii),rh_ds);
+% 
+% D_TE3_ds = [D_TE3_ds; D_t];
+
+
+
+gamma_t = interp1(h2,gamma_TM1(:,ii),h2_ds);
+
+gamma_TM1_ds = [gamma_TM1_ds; gamma_t];
+% 
+% gamma_t = interp1(rh,gamma_TM2(:,ii),rh_ds);
+% 
+% gamma_TM2_ds = [gamma_TM2_ds; gamma_t];
+% 
+% gamma_t = interp1(rh,gamma_TM3(:,ii),rh_ds);
+% 
+% gamma_TM3_ds = [gamma_TM3_ds; gamma_t];
+
+gamma_t = interp1(h2,gamma_TE1(:,ii),h2_ds);
+
+gamma_TE1_ds = [gamma_TE1_ds; gamma_t];
+
+% gamma_t = interp1(rh,gamma_TE2(:,ii),rh_ds);
+% 
+% gamma_TE2_ds = [gamma_TE2_ds; gamma_t];
+
+% gamma_t = interp1(rh,gamma_TE3(:,ii),rh_ds);
+% 
+% gamma_TE3_ds = [gamma_TE3_ds; gamma_t];
+
+end
+
+
+% 
+% 
+D_TM1_ds = D_TM1_ds' ;
+
+% D_TM1_ds1 = D_TM1_ds1';
+% 
+% D_TM1_ds2 = D_TM1_ds2';
+% 
+% D_TM2_ds = D_TM2_ds';
+% 
+% D_TM3_ds = D_TM3_ds';
+% 
+D_TE1_ds = D_TE1_ds';
+
+% D_TE1_ds1 = D_TE1_ds1';
+% 
+% D_TE1_ds2 = D_TE1_ds2';
+% 
+% D_TE2_ds = D_TE2_ds';
+% 
+% D_TE3_ds = D_TE3_ds';
+% 
+% 
+% 
+% gamma_TM1_ds = gamma_TM1_ds';
+% 
+% gamma_TM2_ds = gamma_TM2_ds';
+% 
+% gamma_TM3_ds = gamma_TM3_ds';
+% 
+% gamma_TE1_ds = gamma_TE1_ds';
+% 
+% gamma_TE2_ds = gamma_TE2_ds';
+% 
+% gamma_TE3_ds = gamma_TE3_ds';
+% 
+max1 = max(max(D_TM1_ds));
+% max2 = max(max(D_TM2_ds));
+% max3 = max(max(D_TM3_ds));
+% max4 = max(max(D_TE1_ds));
+% max5 = max(max(D_TE2_ds));
+% max6 = max(max(D_TE3_ds));
+% 
+Dmax = max([max1]);
+% 
+% 
+min1 = min(min(D_TM1_ds));
+% min2 = min(min(D_TM2_ds));
+% min3 = min(min(D_TM3_ds));
+% min4 = min(min(D_TE1_ds));
+% min5 = min(min(D_TE2_ds));
+% min6 = min(min(D_TE3_ds));
+% 
+Dmin = min([min1]);
+% 
+% 
+% 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+figure(7)
+
+colormap(jet(100));
+
+imagesc(wave_t*1e6,h2_ds,D_TM1_ds);
+
+hold on
+ 
+[C ,h]= contour(wave_t*1e6,h2_ds, D_TM1_ds,[0,0],'b:');
+
+
+clabel(C)
+% 
+hold off
+
+axis xy
+
+xlabel('Wavelength(\mum)');
+
+ylabel('Film Thickness(\mum)');
+
+title('Fundamental TM mode: D(ps/(nm*km))')
+
+caxis([-50,30]);
+
+yy = ylim;
+
+line([1.42, 1.42],[yy(1),yy(2)],'color','k');
+
+
+% colorbar('location','southoutside');
+colorbar;
+
+
+figure(71)
+
+plot(wave_t*1e6,D_TM1_ds(end:-1:1,:));
+
+% title('Width=500nm')
+
+ylabel('Dispersion Parameter (ps/km/nm)')
+
+xlabel('Wavelength(\mum)');
+axis([1.40,1.5,-120,120])
+
+legend('540nm','530nm','520nm','510nm','500nm','490nm','480nm');
+
+xx = xlim;
+
+yy = ylim;
+
+line([xx(1),xx(2)],[0,0],'color','b');
+
+line([1.42,1.42],[yy(1),yy(2)],'color','g')
+
+box on
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% 
+figure(10)
+colormap(jet(100));
+
+imagesc(wave_t*1e6,h2_ds,D_TE1_ds);
+
+hold on
+
+% [C ,h]= contour(wave_t*1e6,h2_ds, D_TE1_ds,[0,0],'b:');
+% 
+% 
+% clabel(C)
+
+hold off
+
+axis xy
+
+xlabel('Wavelength(\mum)');
+
+ylabel('Film Thickness(\mum)');
+
+title('Fundamental TE mode: D(ps/(nm*km))')
+
+caxis([-100,30]);
+
+colorbar;
+
+yy = ylim;
+
+line([1.42, 1.42],[yy(1),yy(2)],'color','k');
+colorbar;
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% figure(11)
+% 
+% colormap(jet(100));
+% 
+% 
+% subplot(2,1,1)
+% 
+% imagesc(wave_t*1e6,h2_ds_tm2,D_TM1_ds2);
+% 
+% hold on
+% 
+% [C ,h]= contour(wave_t*1e6,h2_ds_tm2, D_TM1_ds2,[0,0],'b:');
+% 
+% 
+% clabel(C)
+% 
+% hold off
+% 
+% axis xy
+% 
+% % xlabel('Wavelength(\mum)');
+% 
+% ylabel('Film Thickness(\mum)');
+% 
+% title('Fundamental TM mode: D(ps/(nm*km))')
+% 
+% caxis([-800,300]);
+% 
+% yy = ylim;
+% 
+% line([1.55, 1.55],[yy(1),yy(2)],'color','k');
+% 
+% colorbar;
+% 
+% 
+% 
+% colormap(jet(100));
+% 
+% 
+% subplot(2,1,2)
+% 
+% imagesc(wave_t*1e6,h2_ds_tm1,D_TM1_ds1);
+% 
+% hold on
+% 
+% [C ,h]= contour(wave_t*1e6,h2_ds_tm1, D_TM1_ds1,[0,0],'b:');
+% 
+% 
+% clabel(C)
+% 
+% hold off
+% 
+% axis xy
+% 
+% xlabel('Wavelength(\mum)');
+% 
+% ylabel('Film Thickness(\mum)');
+% 
+% 
+% 
+% caxis([-800,300]);
+% 
+% yy = ylim;
+% 
+% line([1.55, 1.55],[yy(1),yy(2)],'color','k');
+% 
+% % colorbar('location','southoutside');
+% colorbar;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% figure(12)
+% 
+% colormap(jet(100));
+% 
+% 
+% subplot(2,1,1)
+% 
+% imagesc(wave_t*1e6,h2_ds_te2,D_TE1_ds2);
+% 
+% hold on
+% 
+% [C ,h]= contour(wave_t*1e6,h2_ds_te2, D_TE1_ds2,[0,0],'b:');
+% 
+% 
+% clabel(C)
+% 
+% hold off
+% 
+% axis xy
+% 
+% % xlabel('Wavelength(\mum)');
+% 
+% ylabel('Film Thickness(\mum)');
+% 
+% title('Fundamental TE mode: D(ps/(nm*km))')
+% 
+% caxis([-800,300]);
+% 
+% yy = ylim;
+% 
+% line([1.55, 1.55],[yy(1),yy(2)],'color','k');
+% 
+% colorbar;
+% 
+% 
+% 
+% colormap(jet(100));
+% 
+% 
+% subplot(2,1,2)
+% 
+% imagesc(wave_t*1e6,h2_ds_te1,D_TE1_ds1);
+% 
+% hold on
+% 
+% [C ,h]= contour(wave_t*1e6,h2_ds_te1, D_TE1_ds1,[0,0],'b:');
+% 
+% 
+% clabel(C)
+% 
+% hold off
+% 
+% axis xy
+% 
+% xlabel('Wavelength(\mum)');
+% 
+% ylabel('Film Thickness(\mum)');
+% 
+% 
+% 
+% caxis([-800,300]);
+% 
+% yy = ylim;
+% 
+% line([1.55, 1.55],[yy(1),yy(2)],'color','k');
+% 
+% % colorbar('location','southoutside');
+% colorbar;
